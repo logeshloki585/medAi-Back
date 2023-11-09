@@ -27,7 +27,7 @@ def recognize_person_base64(base64_image, db_directory):
                 known_face_encodings.append(encoding[0])
                 known_face_names.append(name)
     results = face_recognition.compare_faces(known_face_encodings, input_face_encoding[0])
-
+    print(results)
     if True in results:
         return known_face_names[results.index(True)]
     else:

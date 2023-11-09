@@ -2,6 +2,7 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 from faceDetection import recognize_person_base64
 import json
+import base64
 
 app = Flask(__name__)
 CORS(app)
@@ -16,21 +17,28 @@ except FileNotFoundError:
 def register_data():
     data_id = request.json.get('id')
     data_content = request.json.get('content')
-    print(data_content)
-    data[data_id] = data_content
+    data_img = request.json.get('img')
 
+    if len(data_id)<=30:
+        image_data = base64.b64decode(data_img.split(',')[1])
+        input_image_path = 'db/' + data_content['name'] + '.jpg'
+        print(input_image_path)
+        with open(input_image_path, 'wb') as f:
+            f.write(image_data)
+
+    data[data_id] = data_content
     # Save data to the JSON file
     with open('data.json', 'w') as file:
         json.dump(data, file)
 
     return jsonify({"message": "Data registered successfully"})
 
-@app.route('/fetchdata/<int:data_id>', methods=['GET'])
+@app.route('/fetchdata/address/<string:data_id>', methods=['GET'])
 def fetch_data(data_id):
     if data_id in data:
-        return jsonify({"id": data_id, "data": data[data_id]})
+        return jsonify({"id": data_id, "data": data[data_id],"type":"exist"})
     else:
-        return jsonify({"message": "Data not found"}, 404)
+        return jsonify({"type":"notExist"})
 
 @app.route('/verify', methods=['POST'])
 def verify_face():
@@ -39,9 +47,12 @@ def verify_face():
         image_data = data.get('image')
         if image_data:
             result = recognize_person_base64(image_data, 'db')
+            temp = ['No face found in the input image','.jpg']
+
+            print(result)
             return jsonify({'status': result})
         else:
-            return jsonify({'status': 'Person does not exist'})
+            return jsonify({'status': 'newReg'})
     except Exception as e:
         return jsonify({'status': str(e)})
 

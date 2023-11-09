@@ -11,6 +11,7 @@ CORS(app)
 def verify_face():
     body = request.get_json()
     response=_getBot(body['user'])
+    response = response.replace("Invictus", "MedAi")
     response = {"bot":response}
     print(response)
     return response
