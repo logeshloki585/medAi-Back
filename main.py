@@ -3,6 +3,8 @@ from flask_cors import CORS
 from faceDetection import recognize_person_base64
 import json
 import base64
+from medBot import _getBot
+from medAI import medAI
 
 app = Flask(__name__)
 CORS(app)
@@ -20,6 +22,7 @@ def register_data():
     data_img = request.json.get('img')
 
     if len(data_id)<=30:
+        print(data_id)
         image_data = base64.b64decode(data_img.split(',')[1])
         input_image_path = 'db/' + data_content['name'] + '.jpg'
         print(input_image_path)
@@ -55,6 +58,15 @@ def verify_face():
             return jsonify({'status': 'newReg'})
     except Exception as e:
         return jsonify({'status': str(e)})
+
+@app.route('/chat', methods=['POST'])
+def chat():
+    body = request.get_json()
+    response=medAI(body['user'])
+    # response = response.replace("Invictus", "MedAi")
+    response = {"bot":response}
+    print(response)
+    return response
 
 if __name__ == '__main__':
     app.run(host='localhost', port=4000)
